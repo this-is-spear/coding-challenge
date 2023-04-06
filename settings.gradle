@@ -1,4 +1,5 @@
 rootProject.name = 'coding-challenge'
 include 'core'
 include 'executor'
+include 'api-server'
 
