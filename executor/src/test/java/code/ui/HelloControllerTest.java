@@ -1,7 +1,6 @@
 package code.ui;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 import org.junit.jupiter.api.Test;
@@ -20,7 +19,6 @@ class HelloControllerTest {
 	@Test
 	void sayHello() throws Exception {
 		mockMvc.perform(get("/hello"))
-			.andDo(print())
 			.andExpect(content().string(RESPONSE))
 			.andExpect(status().isOk());
 	}
