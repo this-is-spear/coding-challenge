@@ -3,4 +3,5 @@ include 'core'
 include 'executor'
 include 'api-server'
 include 'analyzer'
+include 'member'
 
