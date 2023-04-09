@@ -1,0 +1,25 @@
+= Member API
+:doctype: book
+:icons: font
+:source-highlighter: highlightjs
+:toc: left
+:toclevels: 2
+:sectlinks:
+
+ifndef::snippets[]
+:snippets: ./build/generated-snippets
+endif::[]
+
+== Hello API
+
+=== Hello
+
+Hello 요청한다.
+
+==== HTTP request
+
+include::{snippets}/member/hello/http-request.adoc[]
+
+==== HTTP response
+
+include::{snippets}/member/hello/http-response.adoc[]

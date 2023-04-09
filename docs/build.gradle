@@ -1,0 +1,54 @@
+plugins {
+    id "org.asciidoctor.jvm.convert" version "3.3.2"
+}
+
+group = 'docs'
+version = '0.0.1-SNAPSHOT'
+
+bootJar { enabled = false }
+jar { enabled = false }
+
+
+configurations {
+    asciidoctorExtensions
+}
+
+repositories {
+    mavenCentral()
+}
+
+ext {
+    set('snippetsDir', file("build/generated-snippets"))
+}
+
+dependencies {
+    implementation project(':core')
+    implementation project(':analyzer')
+    implementation project(':question')
+    implementation project(':executor')
+    implementation project(':member')
+
+    implementation 'org.springframework.boot:spring-boot-starter'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'org.springframework.restdocs:spring-restdocs-mockmvc'
+}
+
+test {
+    outputs.dir snippetsDir
+    useJUnitPlatform()
+}
+
+asciidoctor {
+    dependsOn test
+    inputs.dir snippetsDir
+}
+
+asciidoctor.doFirst {
+    delete file('src/main/resources/static/docs')
+}
+
+task copyDocument(type: Copy) {
+    dependsOn asciidoctor
+    from file("build/docs/asciidoc")
+    into file("src/main/resources/static/docs")
+}
