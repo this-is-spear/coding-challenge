@@ -1,0 +1,8 @@
+rootProject.name = 'coding-challenge'
+include 'core'
+include 'executor'
+include 'question'
+include 'analyzer'
+include 'member'
+include 'docs'
+

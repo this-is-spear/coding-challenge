@@ -1,0 +1,107 @@
+# This workflow uses actions that are not certified by GitHub.
+# They are provided by a third-party and are governed by
+# separate terms of service, privacy policy, and support
+# documentation.
+# This workflow will build a package using Gradle and then publish it to GitHub packages when a release is created
+# For more information see: https://github.com/actions/setup-java/blob/main/docs/advanced-usage.md#Publishing-using-gradle
+
+name: CI
+
+on:
+  pull_request_target:
+    branches:
+      - main
+    types:
+      - opened
+      - reopened
+      - closed
+  push:
+
+jobs:
+  functional_tests_and_integration_tests:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        version: [17]
+      fail-fast: false
+
+    runs-on: ${{ matrix.os }}
+
+    timeout-minutes: 60
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - uses: actions/checkout@v3
+      - name: 🛠 Set up JDK 17
+        uses: actions/setup-java@v3
+        with:
+          java-version: ${{ matrix.version }}
+          distribution: 'corretto'
+
+      - name: ☑️ Validate Gradle wrapper
+        uses: gradle/wrapper-validation-action@e6e38bacfdf1a337459f332974bb2327a31aaf4b
+
+      - name: ✅ Test with Gradle
+        uses: gradle/gradle-build-action@67421db6bd0bf253fb4bd25b31ebb98943c375e1
+        with:
+          arguments: test
+
+  build_and_containerization:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: 🛠 Set up JDK 17
+        uses: actions/setup-java@v3
+        with:
+          java-version: 17
+          distribution: 'corretto'
+
+      - name: ✅ Build with Gradle
+        uses: gradle/gradle-build-action@67421db6bd0bf253fb4bd25b31ebb98943c375e1
+        with:
+          arguments: build
+
+      - name: 🌈 Login to DockerHub
+        uses: docker/login-action@v2
+        with:
+          username: ${{secrets.DOCKERHUB_USERNAME}}
+          password: ${{secrets.DOCKERHUB_TOKEN}}
+
+      - name: 🌏 Load Member Repository into docker
+        env:
+          REPO: ${{secrets.DOCKERHUB_MEMBER_REPO}}
+          NAME: ${{secrets.DOCKERHUB_USERNAME}}
+        run: |
+          docker build -t $REPO -f ./dockerfiles/member/Dockerfile ./member
+          docker tag $REPO:latest $NAME/$REPO:latest
+          docker push $NAME/$REPO:latest
+
+      - name: 🌏 Load Analyzer Repository into docker
+        env:
+          REPO: ${{secrets.DOCKERHUB_ANALYZER_REPO}}
+          NAME: ${{secrets.DOCKERHUB_USERNAME}}
+        run: |
+          docker build -t $REPO -f ./dockerfiles/analyzer/Dockerfile ./analyzer
+          docker tag $REPO:latest $NAME/$REPO:latest
+          docker push $NAME/$REPO:latest
+
+      - name: 🌏 Load Executor Repository into docker
+        env:
+          REPO: ${{secrets.DOCKERHUB_EXECUTOR_REPO}}
+          NAME: ${{secrets.DOCKERHUB_USERNAME}}
+        run: |
+          docker build -t $REPO -f ./dockerfiles/executor/Dockerfile ./executor
+          docker tag $REPO:latest $NAME/$REPO:latest
+          docker push $NAME/$REPO:latest
+
+      - name: 🌏 Load Question Repository into docker
+        env:
+          REPO: ${{secrets.DOCKERHUB_QUESTION_REPO}}
+          NAME: ${{secrets.DOCKERHUB_USERNAME}}
+        run: |
+          docker build -t $REPO -f ./dockerfiles/question/Dockerfile ./question
+          docker tag $REPO:latest $NAME/$REPO:latest
+          docker push $NAME/$REPO:latest
